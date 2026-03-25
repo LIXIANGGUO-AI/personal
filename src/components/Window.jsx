@@ -6,6 +6,8 @@ import GalleryView from './GalleryView';
 import FlipBookView from './FlipBookView';
 import TextReader from './TextReader';
 import TimelineView from './TimelineView';
+import DocumentView from './DocumentView';
+import VideoView from './VideoView';
 
 // ============================================
 // Window — 可拖拽半透明窗口
@@ -80,10 +82,20 @@ function WindowContent({ category, type }) {
     </div>
   );
 
-  if (type === 'gallery') return <GalleryView data={data} />;
-  if (type === 'flipbook') return <FlipBookView data={data} />;
-  if (type === 'text')    return <TextReader />;
-  return <GalleryView data={data} />;
+  switch (type) {
+    case 'gallery':
+      return <GalleryView data={data} />;
+    case 'flipbook':
+      return <FlipBookView data={data} />;
+    case 'document':
+      return <DocumentView data={data} />;
+    case 'video':
+      return <VideoView data={data} />;
+    case 'text':
+      return <TextReader />;
+    default:
+      return <GalleryView data={data} />;
+  }
 }
 
 // Traffic light buttons

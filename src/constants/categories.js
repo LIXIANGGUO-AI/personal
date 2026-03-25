@@ -36,7 +36,7 @@ export const CATEGORIES = [
     label: 'Documents',
     labelCn: '文件',
     notion_category: 'Documents',
-    type: 'flipbook',
+    type: 'document',
     icon: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 6 H25 L32 13 V34 H10 V6Z" stroke="currentColor" stroke-width="1.5"/>
       <path d="M25 6 V13 H32" stroke="currentColor" stroke-width="1.5"/>
@@ -49,7 +49,7 @@ export const CATEGORIES = [
     label: 'Moving',
     labelCn: '影像',
     notion_category: 'Moving',
-    type: 'gallery',
+    type: 'video',
     icon: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="4" y="10" width="24" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
       <path d="M28 15 L36 11 V27 L28 23 V15Z" stroke="currentColor" stroke-width="1.5"/>

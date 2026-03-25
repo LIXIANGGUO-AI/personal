@@ -2,24 +2,30 @@ import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ============================================
-// GalleryView — 恢复稳定版本：窗口化核心展示
+// VideoView — 视频管理与播放
 // ============================================
 
-export default function GalleryView({ data }) {
+export default function VideoView({ data }) {
   const [items, setItems] = useState(data || []);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [direction, setDirection] = useState(0); 
+  const [direction, setDirection] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
-  const handleFile = useCallback((files) => {
+  const currentItem = items[activeIndex];
+
+  const handleFileUpload = useCallback((files) => {
+    if (!files || files.length === 0) return;
+
     const newItems = Array.from(files).map((file, index) => ({
-      id: `local-${Date.now()}-${index}`,
+      id: `vid-${Date.now()}-${index}`,
       title: file.name.split('.')[0].toUpperCase(),
-      description: 'Newly uploaded archive',
+      description: 'Newly uploaded moving archive',
       year: new Date().getFullYear().toString(),
-      cover: URL.createObjectURL(file),
+      url: URL.createObjectURL(file), // 临时预览
+      type: 'video',
     }));
+
     setItems(prev => [...newItems, ...prev]);
     setActiveIndex(0);
   }, []);
@@ -34,7 +40,16 @@ export default function GalleryView({ data }) {
     });
   };
 
-  const currentItem = items[activeIndex];
+  const handleDelete = () => {
+    if (!window.confirm('Delete this video?')) return;
+    setItems(prev => {
+      const updated = prev.filter((_, i) => i !== activeIndex);
+      if (activeIndex >= updated.length && updated.length > 0) {
+        setActiveIndex(updated.length - 1);
+      }
+      return updated;
+    });
+  };
 
   if (!items.length) {
     return (
@@ -44,7 +59,7 @@ export default function GalleryView({ data }) {
         onDrop={(e) => {
           e.preventDefault();
           setIsDragging(false);
-          handleFile(e.target.files);
+          handleFileUpload(e.dataTransfer.files);
         }}
         onClick={() => fileInputRef.current?.click()}
         style={{
@@ -53,9 +68,9 @@ export default function GalleryView({ data }) {
           background: isDragging ? 'rgba(255,255,255,0.03)' : 'transparent',
         }}
       >
-        <input type="file" hidden multiple ref={fileInputRef} onChange={(e) => handleFile(e.target.files)} accept="image/*" />
+        <input type="file" hidden multiple ref={fileInputRef} onChange={(e) => handleFileUpload(e.target.files)} accept="video/*" />
         <div style={{ color: 'var(--cream)', opacity: 0.4, fontSize: 13, fontFamily: 'var(--font-mono)' }}>
-          DRAG OR CLICK TO UPLOAD
+          DRAG OR CLICK TO UPLOAD VIDEO
         </div>
       </div>
     );
@@ -69,26 +84,33 @@ export default function GalleryView({ data }) {
 
   return (
     <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-      <input type="file" hidden multiple ref={fileInputRef} onChange={(e) => handleFile(e.target.files)} accept="image/*" />
+      <input type="file" hidden multiple ref={fileInputRef} onChange={(e) => handleFileUpload(e.target.files)} accept="video/*" />
 
       {/* Hero Display Area */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px 20px 0', minHeight: 0, position: 'relative' }}>
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <AnimatePresence mode="wait" custom={direction}>
-            <motion.img 
+            <motion.div 
               key={activeIndex}
               custom={direction}
               variants={variants}
               initial="enter"
               animate="center"
               exit="exit"
-              src={currentItem.cover} 
               transition={{ duration: 0.4, ease: "easeOut" }}
-              style={{ 
-                maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', 
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)', borderRadius: 2
-              }}
-            />
+              style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <video 
+                src={currentItem.url} 
+                controls
+                autoPlay
+                loop
+                style={{ 
+                  maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', 
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)', borderRadius: 2
+                }}
+              />
+            </motion.div>
           </AnimatePresence>
 
           {/* Nav Arrows */}
@@ -98,7 +120,7 @@ export default function GalleryView({ data }) {
           </div>
         </div>
 
-        {/* Metadata & Controls */}
+        {/* Metadata & Delete */}
         <div style={{ padding: '12px 0 16px', textAlign: 'center', position: 'relative' }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, letterSpacing: '0.1em', color: 'var(--cream)', textTransform: 'uppercase' }}>
             {currentItem.title}
@@ -106,41 +128,15 @@ export default function GalleryView({ data }) {
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'rgba(245, 240, 232, 0.3)', marginTop: 2 }}>
             {currentItem.description} — {currentItem.year}
           </div>
-
-          {/* Delete Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (window.confirm('Delete this item?')) {
-                setItems(prev => {
-                  const newItems = prev.filter((_, i) => i !== activeIndex);
-                  if (activeIndex >= newItems.length && newItems.length > 0) {
-                    setActiveIndex(newItems.length - 1);
-                  }
-                  return newItems;
-                });
-              }
-            }}
+          <button 
+            onClick={handleDelete}
             style={{
-              position: 'absolute',
-              right: 20,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'rgba(200, 112, 112, 0.1)',
-              border: '1px solid rgba(200, 112, 112, 0.3)',
-              color: '#c87070',
-              borderRadius: 4,
-              padding: '4px 8px',
-              fontSize: 10,
-              fontFamily: 'var(--font-mono)',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
+              position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)',
+              background: 'rgba(200, 112, 112, 0.1)', border: '1px solid rgba(200, 112, 112, 0.2)',
+              color: '#c87070', padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
+              fontSize: 10, fontFamily: 'var(--font-mono)'
             }}
-            onMouseOver={e => e.currentTarget.style.background = 'rgba(200, 112, 112, 0.2)'}
-            onMouseOut={e => e.currentTarget.style.background = 'rgba(200, 112, 112, 0.1)'}
-          >
-            DELETE
-          </button>
+          >DELETE</button>
         </div>
       </div>
 
@@ -152,18 +148,20 @@ export default function GalleryView({ data }) {
             onClick={() => { setDirection(index > activeIndex ? 1 : -1); setActiveIndex(index); }}
             whileHover={{ scale: 1.05 }}
             style={{
-              flexShrink: 0, width: 60, height: 70, cursor: 'pointer', borderRadius: 2, overflow: 'hidden',
+              flexShrink: 0, width: 80, height: 60, cursor: 'pointer', borderRadius: 2, overflow: 'hidden',
               border: index === activeIndex ? '1.5px solid var(--rose-gold)' : '1.5px solid transparent',
-              opacity: index === activeIndex ? 1 : 0.4, transition: 'all 0.3s'
+              background: '#000',
+              opacity: index === activeIndex ? 1 : 0.4, transition: 'all 0.3s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}
           >
-            <img src={item.cover} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ fontSize: 8, color: '#fff', opacity: 0.5 }}>VIDEO</div>
           </motion.div>
         ))}
         <div 
           onClick={() => fileInputRef.current?.click()} 
           style={{ 
-            flexShrink: 0, width: 60, height: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', 
+            flexShrink: 0, width: 80, height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', 
             border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 2, cursor: 'pointer', color: 'rgba(255,255,255,0.2)' 
           }}
         >+</div>
