@@ -7,7 +7,7 @@ import { CATEGORIES } from '../constants/categories';
 // 返回：{ grouped: Map<year, items[]>, loading, error }
 // ============================================
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 // 分类 -> 颜色色标（与桌面图标色调保持一致）
 export const CATEGORY_COLORS = {

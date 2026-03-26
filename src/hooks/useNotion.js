@@ -8,7 +8,7 @@ import { MOCK_DATA } from '../data/mockData';
 // 生产阶段：USE_MOCK = false，请求 /api/notion
 // ============================================
 
-const USE_MOCK = true; // 接入 Notion 后改为 false
+const USE_MOCK = false; // 接入 Notion 后改为 false
 
 const cache = {}; // 内存缓存，避免重复请求
 
