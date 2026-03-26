@@ -61,7 +61,16 @@ export default async function handler(req, res) {
 
     return res.status(200).json(items);
   } catch (err) {
-    console.error('Notion API error:', err);
-    return res.status(500).json({ error: err.message });
+    console.error('--- Notion API Detailed Error ---');
+    console.error('Message:', err.message);
+    console.error('Code:', err.code);
+    console.error('Body:', err.body); // Notion API specific error body
+    
+    // Return a more descriptive error to the frontend if possible
+    const errorMessage = err.body ? JSON.parse(err.body).message : err.message;
+    return res.status(500).json({ 
+      error: errorMessage,
+      details: 'Check Vercel logs for full stack trace.'
+    });
   }
 }
