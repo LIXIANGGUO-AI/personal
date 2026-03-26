@@ -44,8 +44,9 @@ export function useNotion(category) {
           const res = await fetch(`/api/notion?category=${encodeURIComponent(category)}`, {
             signal: abortRef.current.signal,
           });
-          if (!res.ok) throw new Error(`API error: ${res.status}`);
-          result = await res.json();
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.error || `API error: ${res.status}`);
+          result = json;
         }
 
         cache[category] = result;
